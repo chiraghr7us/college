@@ -1,0 +1,86 @@
+Logistic regression:
+import numpy as np
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+class LogisticRegression():
+
+    def __init__(self, lr=0.001, epoch=100):
+        self.lr = lr
+        self.epoch = epoch
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        try:
+            n_samples, n_features = X.shape
+        except ValueError:
+            n_samples, n_features = X[:, None].shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+
+        for _ in range(self.epoch):
+            try:
+                linear_pred = np.dot(X, self.weights) + self.bias
+            except ValueError:
+                linear_pred = np.dot(X[:, None], self.weights) + self.bias
+
+            predictions = sigmoid(linear_pred)
+
+            dw = (1 / n_samples) * np.dot(X.T, (predictions - y))
+            db = (1 / n_samples) * np.sum(predictions - y)
+
+            self.weights = self.weights - self.lr * dw
+            self.bias = self.bias - self.lr * db
+        print(linear_pred)
+        print(f"Best weight is(are) {self.weights} and Best Bias is(are) {self.bias}")
+    def predict(self, X):
+        try:
+            linear_pred = np.dot(X, self.weights) + self.bias
+        except ValueError:
+            linear_pred = np.dot(X[:, None], self.weights) + self.bias
+
+        print("Actual predicted Values:",linear_pred)
+        y_pred = sigmoid(linear_pred)
+        print("Scaled predicted Values:", y_pred)
+
+        class_pred = [0 if y <= 0.5 else 1 for y in y_pred]
+        # class_pred = [0 if y <= 0.33 else 1 if y <= 0.67 else 2 for y in y_pred]
+        return class_pred
+
+
+
+
+
+from mlxtend.plotting import plot_decision_regions
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+from LogisticRegression import LogisticRegression
+
+iris = load_iris()
+
+lr_data = iris.data
+X = lr_data[:,2] # petal length
+y = iris.target# target=species
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, stratify=y)
+clf = LogisticRegression()
+clf.fit(X_train,y_train)
+y_pred = clf.predict(X_test)
+print("Classified predicted values:",y_pred)
+print("Test values:",y_test)
+def accuracy(y_pred, y_test):
+    return np.sum(y_pred==y_test)/len(y_test)
+
+acc = accuracy(  y_pred,y_test)
+print("Accuracy=", acc)
+
+
+# plot_decision_regions(X_test[:,2].reshape(-1,1),y_test,clf=clf)
+# plt.show()
